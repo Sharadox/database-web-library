@@ -12,3 +12,4 @@ First version:
 - `MigrationError`.
 - `createMemoryDatabase` and `pglitePool`: Postgres in memory for tests.
 - The `no-raw-sql` ESLint rule.
+- Migration records have a UUIDv7 `id` primary key, added to record tables made before it.
