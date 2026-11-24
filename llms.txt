@@ -1,0 +1,14 @@
+# @sharadox/database-web-library
+
+> Typed, injection-safe Postgres for web applications: Kysely over a Neon pool, forward-only SQL migrations, Postgres in memory (PGlite) for tests, and an ESLint rule keeping values out of SQL text.
+
+- /database: createDatabase<Schema>({ connectionString }) → Kysely<Schema> over @neondatabase/serverless Pool (PostgresDialect); connects on first query
+- /database-configuration: readDatabaseConfiguration(environment = process.env) → { connectionString } from DATABASE_URL (postgres:// or postgresql://, checked with Zod); errors name the variable, never the value
+- /migration: migrate(database, migrations: { name, sql }[], { table = "schema_migration" }) → string[] applied; one transaction + pg_advisory_xact_lock; records name + SHA-256 checksum; MigrationError codes changed | missing | out-of-order | invalid-name (table not /^[a-z_][a-z0-9_]{0,62}$/)
+- /migration-file: readMigrations(folder: URL | string) → Migration[] from files /^\d{4}-[a-z0-9]+(-[a-z0-9]+)*\.sql$/ in order; other files ignored; MigrationError invalid-name | duplicate
+- /migration-error: class MigrationError extends Error { name: "MigrationError"; code: "invalid-name" | "duplicate" | "changed" | "missing" | "out-of-order" }
+- /memory-database: createMemoryDatabase<Schema>() → { database: Kysely<Schema>, close() }: fresh Postgres 18 in memory; needs @electric-sql/pglite (optional peer)
+- /pglite-pool: pglitePool(pglite) → Kysely PostgresPool; one connection at a time; no-parameter queries may hold several statements (exec), result = last
+- /es-lint-plugin: databaseEsLintPlugin (configs.recommended enables "@sharadox/database/no-raw-sql"), noRawSql: reports sql.raw, sql.lit, CompiledQuery.raw, .unsafe(), .query() with SQL built by + or `${}`
+- Ids: uuid columns `default uuidv7() check (uuid_extract_version(id) = 7)`; uuidVersion7 from @sharadox/web-library in code
+- License: Sharadox Open Source License 0.1.0
