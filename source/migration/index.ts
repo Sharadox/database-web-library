@@ -17,8 +17,8 @@ const checksum = (text: string) => createHash("sha256").update(text).digest("hex
  * @example
  * const applied = await migrate(database, await readMigrations(new URL("../../migration/", import.meta.url)));
  */
-export async function migrate(
-  database: Kysely<unknown>,
+export async function migrate<Schema>(
+  database: Kysely<Schema>,
   migrations: Migration[],
   { table = "schema_migration" }: MigrateOptions = {},
 ): Promise<string[]> {

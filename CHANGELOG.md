@@ -8,7 +8,7 @@ First version:
 
 - `createDatabase`: Kysely over a Neon pool.
 - `readDatabaseConfiguration`: reads `DATABASE_URL`.
-- `migrate` and `readMigrations`: forward-only SQL migrations.
+- `migrate` and `readMigrations`: forward-only SQL migrations, for a database typed by any schema.
 - `MigrationError`.
 - `createMemoryDatabase` and `pglitePool`: Postgres in memory for tests.
 - The `no-raw-sql` ESLint rule.
