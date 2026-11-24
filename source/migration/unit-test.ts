@@ -79,3 +79,13 @@ test("applies a folder's files, and Postgres then refuses any id that isn't a UU
     ),
   ).rejects.toThrow(/check constraint/);
 });
+
+test("takes a database typed by its schema, as applications have them", async () => {
+  const typed = await createMemoryDatabase<{ note: { id: string; text: string } }>();
+  expect(await migrate(typed.database, [note])).toEqual(["0001-note"]);
+  await typed.database
+    .insertInto("note")
+    .values({ id: "0198f5a2-7a4c-7000-8000-000000000001", text: "hello" })
+    .execute();
+  await typed.close();
+});
