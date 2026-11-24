@@ -89,3 +89,38 @@ test("takes a database typed by its schema, as applications have them", async ()
     .execute();
   await typed.close();
 });
+
+const recordIds = async (table: string) =>
+  (
+    await sql<{ version: number; key: string }>`select uuid_extract_version(id) as version,
+      (select string_agg(attname, ',') from pg_index join pg_attribute on attrelid = indrelid and attnum = any(indkey)
+        where indrelid = ${table}::regclass and indisprimary) as key
+      from ${sql.table(table)}`.execute(memory.database)
+  ).rows;
+
+test("gives every record a UUIDv7 id, its primary key", async () => {
+  await migrate(memory.database, [note, time]);
+  expect(await recordIds("schema_migration")).toEqual([
+    { version: 7, key: "id" },
+    { version: 7, key: "id" },
+  ]);
+  await expect(
+    sql`insert into schema_migration (id, name, checksum) values (${"7d444840-9dc0-41d6-8f34-1aa6c1f2f0d9"}, ${"x"}, ${"y"})`.execute(
+      memory.database,
+    ),
+  ).rejects.toThrow(/check constraint/);
+});
+
+test("adds the id to a record table made before ids, keeping names unique", async () => {
+  await sql`create table schema_migration (name text primary key, checksum text not null,
+    applied_at timestamptz not null default now())`.execute(memory.database);
+  await migrate(memory.database, [note]);
+  expect(await migrate(memory.database, [note, time])).toEqual(["0002-note-time"]);
+  expect(await recordIds("schema_migration")).toEqual([
+    { version: 7, key: "id" },
+    { version: 7, key: "id" },
+  ]);
+  await expect(
+    sql`insert into schema_migration (name, checksum) values (${"0001-note"}, ${"y"})`.execute(memory.database),
+  ).rejects.toThrow(/unique/);
+});

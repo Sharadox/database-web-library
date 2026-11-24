@@ -6,6 +6,18 @@ import type { MigrateOptions, Migration } from "@sharadox/database-web-library/m
 /** A table name `migrate` accepts: plain lowercase, so it never needs quoting. */
 const IDENTIFIER = /^[a-z_][a-z0-9_]{0,62}$/;
 
+/** Record tables made before every row had an id get one: a UUIDv7 primary key, with names kept unique. */
+async function addRecordIds<Schema>(transaction: Kysely<Schema>, table: string): Promise<void> {
+  const { rows } = await sql`select 1 from information_schema.columns
+    where table_schema = current_schema() and table_name = ${table} and column_name = ${"id"}`.execute(transaction);
+  if (rows.length > 0) return;
+  const records = sql.table(table);
+  await sql`alter table ${records} drop constraint ${sql.id(`${table}_pkey`)}`.execute(transaction);
+  await sql`alter table ${records} add constraint ${sql.id(`${table}_name_key`)} unique (name)`.execute(transaction);
+  await sql`alter table ${records}
+    add column id uuid primary key default uuidv7() check (uuid_extract_version(id) = 7)`.execute(transaction);
+}
+
 const checksum = (text: string) => createHash("sha256").update(text).digest("hex");
 
 /**
@@ -27,10 +39,12 @@ export async function migrate<Schema>(
   return database.transaction().execute(async (transaction) => {
     await sql`select pg_advisory_xact_lock(hashtext(${table}))`.execute(transaction);
     await sql`create table if not exists ${records} (
-      name text primary key,
+      id uuid primary key default uuidv7() check (uuid_extract_version(id) = 7),
+      name text not null unique,
       checksum text not null,
       applied_at timestamptz not null default now()
     )`.execute(transaction);
+    await addRecordIds(transaction, table);
     const applied = (
       await sql<{ name: string; checksum: string }>`select name, checksum from ${records} order by name`.execute(
         transaction,

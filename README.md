@@ -49,7 +49,7 @@ value.
 ### `migration`: `migrate(database, migrations, { table = "schema_migration" })` → names applied
 
 Applies, in order and in one transaction, the migrations not applied yet. Each is recorded with a SHA-256 of its
-SQL. Throws `MigrationError` with one of these codes:
+SQL, under a UUIDv7 `id` like every other row (a record table made before ids gets one). Throws `MigrationError` with one of these codes:
 
 - `changed`: an applied migration was edited;
 - `missing`: an applied migration was removed;
