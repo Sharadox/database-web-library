@@ -118,6 +118,35 @@ create table account (
 
 Generate them in code with `uuidVersion7` from `@sharadox/web-library` when the id is needed before the insert.
 
+## Backups and restore drills
+
+A daily, encrypted copy of the production database in an S3 bucket nobody can empty, and a monthly proof that it
+restores. The pieces, usable on their own:
+
+- `dumpDatabase(url, { program?, run? })` (`backup-dump`): `pg_dump` of the public schema as plain INSERTs, without
+  owners or grants (needs `pg_dump` of the server's major version or later). The address goes in `PGDATABASE`, never
+  on the command line. `restorableSql(dump)` drops psql's own commands (`\restrict`) so any Postgres can replay it.
+- `encryptBackup(bytes, key)`, `decryptBackup(bytes, key)` (`backup-encryption`): AES-256-GCM under
+  `BACKUP_ENCRYPTION_KEY` (at least 32 characters, kept apart from the backups); any change is detected.
+- `backupDatabase({ dump, counts, storage, key, now? })` (`database-backup`): gzip, encrypt, store
+  `YYYY/MM/DD/<time>.sql.gz.enc` and its manifest `<time>.json` (time, size, SHA-256, rows per table).
+  `tableCounts(database)` gives the rows per table.
+- `restoreDrill({ storage, key, into })` (`restore-drill`): the newest backup, checked against its SHA-256,
+  decrypted, replayed into an empty database (`createMemoryDatabase()`), and every table's rows compared with the
+  manifest → `{ ok, createdAt, tables: [{ table, expected, restored }] }`.
+- `createBackupStorage({ bucket, region, prefix, credentials })` (`backup-storage`): S3, write, read and list only;
+  the bucket's Object Lock (compliance mode, 35 days) keeps every file unchangeable. `createMemoryBackupStorage()`
+  for tests.
+- `gitHubWebIdentityToken()` (`git-hub-web-identity`): the GitHub Actions job's identity token for AWS, so the job
+  takes an IAM role with no stored key (the job needs `permissions: { id-token: write }`).
+- `runBackupCommand("backup" | "drill")` (`backup-command`): what a site's workflow runs, reading `BACKUP_BUCKET`,
+  `BACKUP_REGION`, `BACKUP_PREFIX`, `BACKUP_ROLE`, `BACKUP_ENCRYPTION_KEY` and, for a backup,
+  `DATABASE_BACKUP_URL` (a read-only role). It returns the exit code:
+
+```sh
+node -e 'import("@sharadox/database-web-library/backup-command").then(async (m) => process.exit(await m.runBackupCommand("backup")))'
+```
+
 ## License
 
 Sharadox Open Source License 0.1.0 (see `LICENSE.md`).

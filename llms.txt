@@ -11,4 +11,11 @@
 - /pglite-pool: pglitePool(pglite) → Kysely PostgresPool; one connection at a time; no-parameter queries may hold several statements (exec), result = last
 - /es-lint-plugin: databaseEsLintPlugin (configs.recommended enables "@sharadox/database/no-raw-sql"), noRawSql: reports sql.raw, sql.lit, CompiledQuery.raw, .unsafe(), .query() with SQL built by + or `${}`
 - Ids: uuid columns `default uuidv7() check (uuid_extract_version(id) = 7)`; uuidVersion7 from @sharadox/web-library in code
+- /backup-dump: dumpDatabase(url, { program = "pg_dump", run? }) → Uint8Array (--schema=public --inserts --no-owner --no-privileges --quote-all-identifiers; url in PGDATABASE); restorableSql(dump) drops lines starting with "\"
+- /backup-encryption: encryptBackup(bytes, key ≥32 chars) → "SHARADOX-BACKUP-1" + IV(12) + tag(16) + AES-256-GCM ciphertext; decryptBackup(bytes, key)
+- /database-backup: backupDatabase({ dump, counts, storage, key, now? }) → { file "YYYY/MM/DD/<ISO>.sql.gz.enc", manifest ".json" { createdAt, file, bytes, sha256, tables }, tables }; tableCounts(database) → { table: rows } (public schema, schema-qualified)
+- /restore-drill: restoreDrill({ storage, key, into: Kysely }) → { ok, createdAt, tables: [{ table, expected, restored }] }; throws for no backup or a checksum mismatch
+- /backup-storage: createBackupStorage({ bucket, region, prefix, credentials }) → BackupStorage { put, get, list } (no delete; Object Lock); /memory-backup-storage createMemoryBackupStorage()
+- /git-hub-web-identity: gitHubWebIdentityToken(environment?) → the Actions OIDC token (audience sts.amazonaws.com)
+- /backup-command: runBackupCommand("backup" | "drill", environment?, parts?) → exit code; env BACKUP_BUCKET, BACKUP_REGION, BACKUP_PREFIX, BACKUP_ROLE, BACKUP_ENCRYPTION_KEY, DATABASE_BACKUP_URL (backup)
 - License: Sharadox Open Source License 0.1.0
