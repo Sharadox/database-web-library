@@ -124,7 +124,7 @@ A daily, encrypted copy of the production database in an S3 bucket nobody can em
 restores. The pieces, usable on their own:
 
 - `dumpDatabase(url, { program?, run? })` (`backup-dump`): `pg_dump` of the public schema as plain INSERTs, without
-  owners or grants (needs `pg_dump` of the server's major version or later). The address goes in `PGDATABASE`, never
+  owners or grants (needs `pg_dump` of the server's major version or later). The address goes in libpq's environment (`PGHOST`, `PGPASSWORD`…), never
   on the command line. `restorableSql(dump)` drops psql's own commands (`\restrict`) so any Postgres can replay it.
 - `encryptBackup(bytes, key)`, `decryptBackup(bytes, key)` (`backup-encryption`): AES-256-GCM under
   `BACKUP_ENCRYPTION_KEY` (at least 32 characters, kept apart from the backups); any change is detected.
