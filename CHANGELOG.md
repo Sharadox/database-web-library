@@ -2,10 +2,6 @@
 
 What changed in each version of `@sharadox/database-web-library`, newest first.
 
-## 0.1.1
-
-Backups and restore drills: encrypted pg_dump backups to an S3 bucket with Object Lock, and a monthly drill restoring the newest into Postgres in memory.
-
 ## 0.1.0
 
 First version:

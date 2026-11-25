@@ -1,6 +1,6 @@
 {
   "name": "@sharadox/database-web-library",
-  "version": "0.1.1",
+  "version": "0.1.0",
   "description": "Typed, injection-safe Postgres for web applications: queries, migrations, backups and restore drills.",
   "private": false,
   "license": "SEE LICENSE IN LICENCA.md",
