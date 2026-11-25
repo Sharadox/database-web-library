@@ -13,3 +13,6 @@ First version:
 - `createMemoryDatabase` and `pglitePool`: Postgres in memory for tests.
 - The `no-raw-sql` ESLint rule.
 - Migration records have a UUIDv7 `id` primary key, added to record tables made before it.
+- Backups and restore drills: `dumpDatabase`, `restorableSql`, `encryptBackup`, `decryptBackup`, `backupDatabase`,
+  `tableCounts`, `restoreDrill`, `createBackupStorage`, `createMemoryBackupStorage`, `gitHubWebIdentityToken` and
+  `runBackupCommand`.

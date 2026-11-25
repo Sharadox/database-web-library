@@ -53,6 +53,8 @@
     "*.{json,md,yml,yaml}": "prettier --write"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1177.0",
+    "@aws-sdk/credential-providers": "^3.1177.0",
     "@neondatabase/serverless": "^1.2.0",
     "@sharadox/web-library": "^0.11.1",
     "kysely": "^0.28.19",
